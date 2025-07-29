@@ -87,19 +87,16 @@ def serve_static_app(path):
 
 # --- Hauptausführung des Programms ---
 if __name__ == '__main__':
-    # Beim Start der Anwendung setzen wir den Webhook bei Telegram
+    # Der Code zum Setzen des Webhooks bleibt unverändert
     render_url = os.getenv('RENDER_EXTERNAL_URL')
     if render_url:
         webhook_url = f"{render_url}/{bot_instance.token}"
         print(f"Versuche, Webhook zu setzen auf: {webhook_url}")
         
-        # Wir müssen eine asynchrone Funktion aufrufen, um den Webhook zu setzen
-        # Dies geschieht in einem eigenen kleinen asyncio-Event-Loop
         async def set_telegram_webhook():
             await application.bot.set_webhook(url=webhook_url, allowed_updates=Update.ALL_TYPES)
         
         loop = asyncio.get_event_loop()
-        # Prüfen, ob bereits ein Loop läuft (wichtig für manche Umgebungen)
         if loop.is_running():
             loop.create_task(set_telegram_webhook())
         else:
@@ -107,12 +104,19 @@ if __name__ == '__main__':
             
         print("✅ Webhook-Setz-Befehl an Telegram gesendet.")
     else:
-        print("🔴 WARNUNG: RENDER_EXTERNAL_URL nicht gefunden. Webhook nicht gesetzt.")
-        print("   Der Bot wird auf dem Server nicht auf Nachrichten reagieren.")
-        print("   Dies ist normal bei lokaler Ausführung. Für den Serverbetrieb ist dies ein Fehler.")
+        print("🔴 WARNUNG: RENDER_EXTERNAL_URL nicht gefunden.")
 
-    # Starte den Webserver mit uvicorn, um asynchrone Anfragen zu bewältigen
+    # --- HIER IST DIE ENTSCHEIDENDE ÄNDERUNG ---
+    # Wir importieren den "Übersetzer"
+    from wsgitoasgi import WsgiToAsgi
+
+    # Wir "verpacken" unsere Flask-App in den Übersetzer
+    asgi_app = WsgiToAsgi(app)
+
+    # Wir importieren uvicorn
     import uvicorn
     server_port = int(os.getenv('PORT', 5000))
-    print(f"🌐 Starte den Webserver mit uvicorn auf http://0.0.0.0:{server_port}" )
-    uvicorn.run(app, host='0.0.0.0', port=server_port)
+    print(f"🌐 Starte den Webserver mit uvicorn und WSGI-zu-ASGI-Adapter auf http://0.0.0.0:{server_port}" )
+    
+    # Wir übergeben uvicorn die "übersetzte" App anstelle der rohen Flask-App
+    uvicorn.run(asgi_app, host='0.0.0.0', port=server_port)
