@@ -46,7 +46,7 @@ class TochterErinnerungenBot:
         # OpenAI Client initialisieren (für Text-Aufbereitung)
         # Wenn Sie OpenAI nicht nutzen, kommentieren Sie die nächste Zeile aus
         # und passen Sie die _enhance_text Methode an.
-        self.openai_client = openai.OpenAI()
+        # self.openai_client = openai.OpenAI()
         
         # Azure Speech-to-Text Konfiguration
         self.azure_speech_key = os.getenv("AZURE_SPEECH_KEY")
