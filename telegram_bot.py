@@ -18,8 +18,8 @@ import openai
 import azure.cognitiveservices.speech as speechsdk
 from pydub import AudioSegment
 
-from src.google_sheets_manager import GoogleSheetsManager
-from src.summary_generator import SummaryGenerator
+from google_sheets_manager import GoogleSheetsManager
+from summary_generator import SummaryGenerator
 
 # Lade Umgebungsvariablen
 load_dotenv()
