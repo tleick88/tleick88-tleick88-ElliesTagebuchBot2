@@ -163,7 +163,7 @@ class GoogleSheetsManager:
             logger.error(f"Fehler beim Header Setup: {e}")
     
     async def save_memory(self, original_text: str, enhanced_text: str, timestamp: str, month: str, year: str) -> bool:        """Speichert eine Erinnerung in Google Sheets"""
-        try            
+        try:            
             now = datetime.now()
             timestamp = now.strftime("%d.%m.%Y %H:%M:%S")
             month = now.strftime("%Y-%m")
