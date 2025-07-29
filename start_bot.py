@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 # Umgebungsvariablen laden
 load_dotenv()
 
-from src.telegram_bot import TochterErinnerungenBot
+from telegram_bot import TochterErinnerungenBot
 
 if __name__ == "__main__":
     print("🚀 Starte Tochter-Erinnerungen Telegram Bot...")
