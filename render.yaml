@@ -1,40 +1,35 @@
-# render.yaml - Die alleinige Quelle der Wahrheit für unseren neuen Dienst
+# render.yaml - Version 6 (Syntaktisch korrekt)
 
-# Definiert alle Dienste, die zu unserem Projekt gehören
 services:
-
-  # 1. Der Web-Dienst für den Bot und die API
   - type: web
-    # WICHTIG: Ein neuer, sauberer Name für den Dienst
     name: ellies-tagebuch-bot-final
     env: python
     plan: free
     
-    # Wir erzwingen eine stabile Python-Version
+    # Der 'build' Block enthält alles, was die Bau-Phase betrifft.
+    # Dies ist die entscheidende Korrektur.
+    build:
+      # Befehl zum Installieren der Abhängigkeiten
+      buildCommand: "pip install -r requirements.txt"
+      # System-Abhängigkeiten, die VOR dem buildCommand installiert werden
+      systemDependencies:
+        - name: ffmpeg
+        - name: libasound2-dev
+    
+    # Die Python-Version wird hier auf der obersten Ebene definiert.
+    # Korrektur meiner vorherigen Annahme. Die Doku zeigt sie hier.
     pythonVersion: "3.11"
 
-    # Die Befehle zum Bauen und Starten
-    buildCommand: "pip install -r requirements.txt"
+    # Der Befehl zum Starten der Anwendung NACH dem Bauen
     startCommand: "python main.py"
 
-    # Die entscheidenden System-Abhängigkeiten
-    systemDependencies:
-      - name: ffmpeg
-      - name: libasound2-dev
-
-    # Verknüpfung zum persistenten Speicher (siehe unten)
-    # Der Name 'bot-database' muss mit dem Namen des pserv-Dienstes übereinstimmen
+    # Persistenter Speicher für die Datenbank
     disk:
       name: bot-database
       mountPath: /var/data/database
-      sizeGB: 1 # Die kleinste Größe ist ausreichend
+      sizeGB: 1
 
-    # Umgebungsvariablen (nur die, die nicht geheim sind)
+    # Umgebungsvariablen
     envVars:
       - key: PYTHONUNBUFFERED
         value: 1
-
-  # 2. Ein separater, persistenter Speicher für die Datenbank
-  - type: pserv
-    name: bot-database # Dieser Name wird oben im 'disk'-Abschnitt referenziert
-    plan: free
