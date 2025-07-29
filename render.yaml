@@ -1,27 +1,26 @@
-# render.yaml - Version 6 (Syntaktisch korrekt)
+# render.yaml - Finale, syntaktisch korrekte Version
 
 services:
   - type: web
-    name: ellies-tagebuch-bot-final
-    env: python
+    name: ellies-tagebuch-bot-final  # Sie können diesen Namen bei Bedarf ändern
+    
+    # 'runtime: python' ist der Schlüssel, der die Python-spezifischen Felder aktiviert
+    runtime: python
     plan: free
     
-    # Der 'build' Block enthält alles, was die Bau-Phase betrifft.
-    # Dies ist die entscheidende Korrektur.
-    build:
-      # Befehl zum Installieren der Abhängigkeiten
-      buildCommand: "pip install -r requirements.txt"
-      # System-Abhängigkeiten, die VOR dem buildCommand installiert werden
-      systemDependencies:
-        - name: ffmpeg
-        - name: libasound2-dev
-    
-    # Die Python-Version wird hier auf der obersten Ebene definiert.
-    # Korrektur meiner vorherigen Annahme. Die Doku zeigt sie hier.
+    # Python-Version, die für die Laufzeitumgebung verwendet werden soll
     pythonVersion: "3.11"
 
-    # Der Befehl zum Starten der Anwendung NACH dem Bauen
+    # Befehl zum Installieren der Abhängigkeiten während der Build-Phase
+    buildCommand: "pip install -r requirements.txt"
+    
+    # Befehl zum Starten der Anwendung nach einem erfolgreichen Build
     startCommand: "python main.py"
+
+    # Systemabhängigkeiten, die VOR dem buildCommand installiert werden
+    systemDependencies:
+      - name: ffmpeg
+      - name: libasound2-dev
 
     # Persistenter Speicher für die Datenbank
     disk:
@@ -29,7 +28,7 @@ services:
       mountPath: /var/data/database
       sizeGB: 1
 
-    # Umgebungsvariablen
+    # Umgebungsvariablen, die nicht geheim sind
     envVars:
       - key: PYTHONUNBUFFERED
         value: 1
