@@ -12,8 +12,8 @@ load_dotenv()
 
 from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
-from models.user import db
-from routes.user import user_bp
+from models import db
+from routes import user_bp
 from telegram_bot import TochterErinnerungenBot
 
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
