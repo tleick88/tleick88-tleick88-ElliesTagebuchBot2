@@ -1,0 +1,18 @@
+# render.yaml
+# Diese Datei konfiguriert die Infrastruktur und System-Abhängigkeiten auf Render.
+
+services:
+  - type: web # Stellt sicher, dass dies für Ihren Web-Dienst gilt
+    name: tleick88-tleick88-ElliesTagebuchBot2 # WICHTIG: Ersetzen Sie dies durch den exakten Namen Ihres Dienstes in Render!
+    env: python
+    plan: free # Oder den Plan, den Sie verwenden
+    buildFilter:
+      paths:
+      - "src/**" # Passen Sie dies bei Bedarf an Ihre Struktur an
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3 # Oder die Python-Version Ihrer Wahl
+    systemDependencies:
+      - name: ffmpeg
+        version: "4.4.1" # Eine stabile Version von FFmpeg
