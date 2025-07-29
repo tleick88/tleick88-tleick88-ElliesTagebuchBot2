@@ -1,18 +1,26 @@
-# render.yaml
-# Diese Datei konfiguriert die Infrastruktur und System-Abhängigkeiten auf Render.
+# render.yaml - Korrigiert mit dem exakten Dienstnamen
 
 services:
-  - type: web # Stellt sicher, dass dies für Ihren Web-Dienst gilt
-    name: tleick88-tleick88-ElliesTagebuchBot2 # WICHTIG: Ersetzen Sie dies durch den exakten Namen Ihres Dienstes in Render!
+  - type: web
+    # HIER IST DIE WICHTIGE ÄNDERUNG:
+    name: tleick88-tleick88-ElliesTagebuchBot2 
     env: python
-    plan: free # Oder den Plan, den Sie verwenden
-    buildFilter:
-      paths:
-      - "src/**" # Passen Sie dies bei Bedarf an Ihre Struktur an
-    healthCheckPath: /
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.3 # Oder die Python-Version Ihrer Wahl
+    plan: free
+    
+    # Legt die Python-Version fest. Eine stabile Version ist oft besser.
+    pythonVersion: "3.11"
+
+    # Befehle zum Bauen und Starten
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+
+    # Systemabhängigkeiten, die vor dem Build installiert werden.
+    # Dies ist der wichtigste Teil für die Audioverarbeitung.
     systemDependencies:
       - name: ffmpeg
-        version: "4.4.1" # Eine stabile Version von FFmpeg
+      - name: libasound2-dev # Wichtige Bibliothek für Audio I/O unter Linux
+
+    # Umgebungsvariablen
+    envVars:
+      - key: PYTHONUNBUFFERED # Sorgt für bessere Logs
+        value: 1
