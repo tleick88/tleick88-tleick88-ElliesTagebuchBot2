@@ -1,26 +1,40 @@
-# render.yaml - Korrigiert mit dem exakten Dienstnamen
+# render.yaml - Die alleinige Quelle der Wahrheit für unseren neuen Dienst
 
+# Definiert alle Dienste, die zu unserem Projekt gehören
 services:
+
+  # 1. Der Web-Dienst für den Bot und die API
   - type: web
-    # HIER IST DIE WICHTIGE ÄNDERUNG:
-    name: tleick88-tleick88-ElliesTagebuchBot2 
+    # WICHTIG: Ein neuer, sauberer Name für den Dienst
+    name: ellies-tagebuch-bot-final
     env: python
     plan: free
     
-    # Legt die Python-Version fest. Eine stabile Version ist oft besser.
+    # Wir erzwingen eine stabile Python-Version
     pythonVersion: "3.11"
 
-    # Befehle zum Bauen und Starten
+    # Die Befehle zum Bauen und Starten
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python main.py"
 
-    # Systemabhängigkeiten, die vor dem Build installiert werden.
-    # Dies ist der wichtigste Teil für die Audioverarbeitung.
+    # Die entscheidenden System-Abhängigkeiten
     systemDependencies:
       - name: ffmpeg
-      - name: libasound2-dev # Wichtige Bibliothek für Audio I/O unter Linux
+      - name: libasound2-dev
 
-    # Umgebungsvariablen
+    # Verknüpfung zum persistenten Speicher (siehe unten)
+    # Der Name 'bot-database' muss mit dem Namen des pserv-Dienstes übereinstimmen
+    disk:
+      name: bot-database
+      mountPath: /var/data/database
+      sizeGB: 1 # Die kleinste Größe ist ausreichend
+
+    # Umgebungsvariablen (nur die, die nicht geheim sind)
     envVars:
-      - key: PYTHONUNBUFFERED # Sorgt für bessere Logs
+      - key: PYTHONUNBUFFERED
         value: 1
+
+  # 2. Ein separater, persistenter Speicher für die Datenbank
+  - type: pserv
+    name: bot-database # Dieser Name wird oben im 'disk'-Abschnitt referenziert
+    plan: free
