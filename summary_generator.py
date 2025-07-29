@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class SummaryGenerator:
     def __init__(self):
-        self.openai_client = openai.OpenAI()
+        #self.openai_client = openai.OpenAI()
     
     async def generate_monthly_summary(self, memories: List[Dict[str, Any]], year: int, month: int) -> str:
         """Generiert eine intelligente Monats-Zusammenfassung"""
