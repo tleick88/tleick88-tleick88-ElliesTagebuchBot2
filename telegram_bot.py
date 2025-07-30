@@ -258,10 +258,10 @@ _{transcript}_
     
     # NEUE, KORREKTE VERSION
     def run(self):
-    """Startet den Bot und führt ihn im Polling-Modus aus."""
-    logger.info("Bot wird im Polling-Modus gestartet...")
-    # Diese Methode startet das Polling und blockiert, bis der Bot gestoppt wird.
-    self.application.run_polling()
+        """Startet den Bot und führt ihn im Polling-Modus aus."""
+        logger.info("Bot wird im Polling-Modus gestartet...")
+        # Diese Methode startet das Polling und blockiert, bis der Bot gestoppt wird.
+        self.application.run_polling()
 un(self):
         """Diese Methode wird von main.py aufgerufen, um die Handler zu registrieren."""
         logger.info("Bot-Handler werden registriert...")
