@@ -262,7 +262,3 @@ _{transcript}_
         logger.info("Bot wird im Polling-Modus gestartet...")
         # Diese Methode startet das Polling und blockiert, bis der Bot gestoppt wird.
         self.application.run_polling()
-un(self):
-        """Diese Methode wird von main.py aufgerufen, um die Handler zu registrieren."""
-        logger.info("Bot-Handler werden registriert...")
-        pass
