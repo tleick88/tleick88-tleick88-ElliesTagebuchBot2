@@ -244,8 +244,8 @@ _{transcript}_
             logger.error(f"Fehler beim Aufruf von save_memory: {e}", exc_info=True)
             return False
 
-        async def run(self):
-            """Startet den Bot im Polling-Modus. Diese Methode ist jetzt asynchron."""
-            logger.info("Bot wird im Polling-Modus gestartet...")
-            # run_polling ist eine asynchrone, blockierende Operation
-            await self.application.run_polling()
+    async def run(self):
+        """Startet den Bot im Polling-Modus. Diese Methode ist jetzt asynchron."""
+        logger.info("Bot wird im Polling-Modus gestartet...")
+        # run_polling ist eine asynchrone, blockierende Operation
+        await self.application.run_polling()
