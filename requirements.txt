@@ -58,3 +58,4 @@ google-auth-httplib2
 google-auth-oauthlib
 pytz
 Flask
+google-cloud-aiplatform
