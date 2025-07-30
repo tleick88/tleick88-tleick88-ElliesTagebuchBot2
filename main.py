@@ -1,5 +1,6 @@
-# main.py
+# main.py - Finale, korrigierte Version
 
+import asyncio
 import os
 import logging
 import threading
@@ -25,6 +26,25 @@ def run_flask():
     app.run(host='0.0.0.0', port=port)
 # --- Ende des Webserver-Teils ---
 
+async def main():
+    """Initialisiert alle Dienste und startet den Bot."""
+    
+    # 1. Bot-Instanz erstellen
+    bot = TochterErinnerungenBot()
+    
+    # 2. Google Sheets Manager explizit initialisieren
+    #    Wir greifen auf die Instanz zu, die im Bot erstellt wurde.
+    logger.info("Initialisiere Google Sheets Manager...")
+    is_sheets_ok = await bot.sheets_manager.initialize()
+    
+    if not is_sheets_ok:
+        logger.critical("KRITISCHER FEHLER: Google Sheets konnte nicht initialisiert werden. Der Bot startet, aber das Speichern wird fehlschlagen.")
+        # Man könnte hier auch mit `return` abbrechen, aber wir lassen den Bot trotzdem laufen.
+    
+    # 3. Den Bot starten (jetzt, da alles andere bereit ist)
+    await bot.run()
+
+
 if __name__ == '__main__':
     try:
         # Starte den Flask-Webserver in einem Hintergrund-Thread
@@ -32,13 +52,8 @@ if __name__ == '__main__':
         flask_thread.start()
         logger.info("Flask-Server für Render Health-Check gestartet.")
 
-        # Erstelle eine Instanz des Bots
-        bot = TochterErinnerungenBot()
+        # Starte die asynchrone Hauptfunktion, die alles initialisiert und den Bot startet
+        asyncio.run(main())
         
-        # Rufe die blockierende run-Methode des Bots auf.
-        # Diese Methode wird nun den Haupt-Thread übernehmen und den Bot ausführen.
-        # asyncio.run() wird nicht mehr benötigt.
-        bot.run()
-
     except Exception as e:
         logger.critical(f"Bot konnte nicht gestartet werden: {e}", exc_info=True)
