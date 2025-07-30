@@ -49,3 +49,12 @@ pydub
 uvicorn
 python-telegram-bot
 flask
+python-telegram-bot
+python-dotenv
+azure-cognitiveservices-speech
+pydub
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+pytz
+Flask
