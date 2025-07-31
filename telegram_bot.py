@@ -1,132 +1,19 @@
-# telegram_bot.py - Finale, stabile Version mit post_init-Hook
+# In telegram_bot.py
 
-"""
-Telegram Bot für Tochter-Erinnerungen
-Verarbeitet Sprachnachrichten, verfeinert sie mit Google Gemini und speichert sie in Google Sheets
-"""
-
-import os
-import logging
-from datetime import datetime
-import pytz
-from typing import Optional
-from io import BytesIO
-
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from dotenv import load_dotenv
-import azure.cognitiveservices.speech as speechsdk
-from pydub import AudioSegment
-
-import vertexai
-from vertexai.generative_models import GenerativeModel
-
-from google_sheets_manager import GoogleSheetsManager
-from summary_generator import SummaryGenerator
-
-# Lade Umgebungsvariablen
-load_dotenv()
-
-# Logging konfigurieren
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
-class TochterErinnerungenBot:
-    def __init__(self):
-        """Initialisiert den Bot und seine Komponenten synchron."""
-        self.token = os.getenv('TELEGRAM_BOT_TOKEN')
-        if not self.token:
-            raise ValueError("TELEGRAM_BOT_TOKEN nicht gefunden! Bitte als Umgebungsvariable setzen.")
-            
-        self.azure_speech_key = os.getenv("AZURE_SPEECH_KEY")
-        self.azure_speech_region = os.getenv("AZURE_SPEECH_REGION")
-        
-        # Komponenten erstellen, aber noch nicht asynchron initialisieren
-        self.sheets_manager = GoogleSheetsManager()
-        self.summary_generator = SummaryGenerator()
-        
-        # Application-Objekt erstellen
-        self.application = Application.builder().token(self.token).build()
-        
-        # +++ DER ENTSCHEIDENDE TRICK: POST-INIT-HOOK +++
-        # Wir weisen unsere eigene asynchrone Initialisierungsfunktion zu.
-        # `run_polling` wird diese Funktion automatisch nach dem Start der Event-Loop ausführen.
-        self.application.post_init = self.post_init_async
-        
-        # Gemini-Modell synchron initialisieren
-        self.gemini_model = None
-        try:
-            project_id = os.getenv('GOOGLE_PROJECT_ID')
-            if not project_id:
-                logger.warning("GOOGLE_PROJECT_ID nicht gefunden. Text-Verfeinerung wird deaktiviert.")
-            else:
-                vertexai.init(project=project_id, location="us-central1")  
-                self.gemini_model = GenerativeModel("gemini-1.5-flash-001")
-                logger.info("✅ Vertex AI (Gemini) erfolgreich initialisiert.")
-        except Exception as e:
-            logger.error(f"FEHLER bei der Initialisierung von Vertex AI: {e}. Text-Verfeinerung ist deaktiviert.")
-            self.gemini_model = None
-        
-        # Handler registrieren
-        self._register_handlers()
-    
-    async def post_init_async(self, application: Application):
-        """
-        Diese asynchrone Funktion wird automatisch von `run_polling` aufgerufen,
-        nachdem die Event-Loop gestartet wurde. Perfekter Ort für asynchrone Setups.
-        """
-        logger.info("Führe Post-Initialisierungs-Aufgaben aus...")
-        is_sheets_ok = await self.sheets_manager.initialize()
-        if not is_sheets_ok:
-            logger.critical("KRITISCHER FEHLER: Google Sheets konnte nicht initialisiert werden. Speichern wird fehlschlagen.")
-        else:
-            logger.info("✅ Post-Initialisierung (Google Sheets) erfolgreich abgeschlossen.")
-
-    def _register_handlers(self):
-        """Registriert alle Bot-Handler."""
-        self.application.add_handler(CommandHandler("start", self.start_command))
-        self.application.add_handler(CommandHandler("help", self.help_command))
-        self.application.add_handler(MessageHandler(filters.VOICE, self.handle_voice_message))
-        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
-    
-    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        welcome_message = """
-🎉 Willkommen beim Tochter-Erinnerungen Bot! 🎉
-
-Dieser Bot hilft dir dabei, die schönsten und lustigsten Momente mit deiner Tochter festzuhalten.
-
-📝 **So funktioniert's:**
-• Sende mir eine Sprachnachricht mit einer Erinnerung
-• Ich transkribiere sie und mache sie schöner
-• Alles wird automatisch mit Datum gespeichert
-
-Sende einfach eine Sprachnachricht, um zu beginnen! 🎤
-        """
-        await update.message.reply_text(welcome_message)
-    
-    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        help_message = """
-📖 **Hilfe - Tochter-Erinnerungen Bot**
-
-🎤 **Sprachnachrichten senden:**
-Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bot wird:
-1. Die Nachricht transkribieren
-2. Den Text stilistisch verbessern
-3. Mit Datum in der Google-Tabelle speichern
-
-📊 **Verfügbare Befehle:**
-• `/start` - Bot starten und Willkommensnachricht
-• `/help` - Diese Hilfe anzeigen
-        """
-        await update.message.reply_text(help_message)
-    
     async def handle_voice_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Verarbeitet eingehende Sprachnachrichten."""
+        
+        user = update.message.from_user
+        # Sicherheitscheck für erlaubte IDs (falls konfiguriert)
+        if self.allowed_ids and user.id not in self.allowed_ids:
+            logger.warning(f"Unbefugter Zugriff von User-ID: {user.id} ({user.username})")
+            await update.message.reply_text("Entschuldigung, dieser Bot ist privat.")
+            return
+
         try:
+            # +++ WICHTIG: Autor-Name hier definieren +++
             author_name = user.first_name 
+
             processing_msg = await update.message.reply_text("🎤 Verarbeite deine Sprachnachricht...")
             voice = update.message.voice
             logger.info(f"Sprachnachricht erhalten: {voice.duration}s, {voice.file_size} bytes")
@@ -151,7 +38,9 @@ Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bo
             now_berlin = datetime.now(berlin_tz)
 
             await processing_msg.edit_text("💾 Speichere Erinnerung...")
-            success = await self.sheets_manager.save_memory(transcript, enhanced_text, author_name)          
+            
+            # +++ WICHTIG: Der korrigierte Aufruf +++
+            success = await self.sheets_manager.save_memory(transcript, enhanced_text, author_name)            
             
             if success:
                 response_message = f"""✅ **Erinnerung erfolgreich gespeichert!**
@@ -179,72 +68,4 @@ _{transcript}_
         except Exception as e:
             logger.error(f"Fehler bei Sprachnachricht-Verarbeitung: {e}", exc_info=True)
             await update.message.reply_text("❌ Ein unerwarteter Fehler ist aufgetreten.")
-    
-    async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("📝 Ich verstehe nur Sprachnachrichten! 🎤")
-    
-    async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
-        try:
-            speech_config = speechsdk.SpeechConfig(subscription=self.azure_speech_key, region=self.azure_speech_region)
-            speech_config.speech_recognition_language="de-DE"
-
-            import tempfile
-            with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp_ogg_file:
-                tmp_ogg_file.write(audio_data.getvalue())
-                tmp_ogg_path = tmp_ogg_file.name
-
-            audio = AudioSegment.from_ogg(tmp_ogg_path)
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav_file:
-                audio.export(tmp_wav_file.name, format="wav")
-                tmp_wav_path = tmp_wav_file.name
-
-            audio_config = speechsdk.AudioConfig(filename=tmp_wav_path)
-            speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
-            result = speech_recognizer.recognize_once_async().get()
-
-            os.remove(tmp_ogg_path)
-            os.remove(tmp_wav_path)
-
-            if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-                return result.text.strip()
-            return None
-        except Exception as e:
-            logger.error(f"Fehler bei Azure Transkription: {e}", exc_info=True)
-            return None
-    
-    async def _enhance_text(self, text: str) -> str:
-        """Verbessert den transkribierten Text stilistisch mit Google Gemini."""
-        if not self.gemini_model:
-            logger.warning("Text-Verbesserung übersprungen, da das Gemini-Modell nicht initialisiert wurde.")
-            return text
-
-        try:
-            prompt = f"""
-            Du bist ein liebevoller und kreativer Assistent, der dabei hilft, die Erinnerungen eines Vaters an seine Tochter festzuhalten.
-            Deine Aufgabe ist es, das folgende, direkt transkribierte Diktat in einen flüssigen, herzerwärmenden und gut lesbaren Text umzuwandeln.
-            Korrigiere Grammatik- und Flüchtigkeitsfehler, aber bewahre den ursprünglichen Sinn und die Emotionen.
-            Formuliere es so, als würde der Vater die Erinnerung in ein Tagebuch schreiben.
-            Gib NUR den überarbeiteten Text zurück, ohne zusätzliche Einleitungen oder Kommentare wie "Hier ist der überarbeitete Text:".
-
-            Original-Transkript:
-            "{text}"
-            """
-            response = self.gemini_model.generate_content(prompt)
-            enhanced_text = response.text.strip()
-            
-            logger.info("✅ Text erfolgreich mit Gemini verbessert.")
-            return enhanced_text if enhanced_text else text
-
-        except Exception as e:
-            logger.error(f"FEHLER bei der Text-Verbesserung mit Gemini: {e}", exc_info=True)
-            return text
-
-    def run(self):
-        """
-        Startet den Bot. Diese Methode ist synchron und blockierend.
-        Sie übergibt die Kontrolle an `run_polling`.
-        """
-        logger.info("Starte run_polling (dies blockiert und startet die async Welt)...")
-        # run_polling kümmert sich um alles: Start der Loop, Ausführung von post_init und Polling.
-        self.application.run_polling()
 
