@@ -72,7 +72,6 @@ class TochterErinnerungenBot:
         await update.message.reply_text("Sende eine Sprachnachricht. Ich transkribiere sie, verbessere den Text und speichere alles in Google Sheets.")
 
     async def handle_voice_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        # +++ DER FIX: 'user' hier definieren +++
         user = update.message.from_user
         
         try:
@@ -100,22 +99,37 @@ class TochterErinnerungenBot:
             success = await self.sheets_manager.save_memory(transcript, enhanced_text, author_name)
             
             if success:
-                 response_message = f"""✅ **Erinnerung von {author_name} erfolgreich gespeichert!**
+                # +++ HIER IST DIE GEWÜNSCHTE ANTWORT-FORMATIERUNG +++
+                berlin_tz = pytz.timezone("Europe/Berlin")
+                now_berlin = datetime.now(berlin_tz)
+                
+                response_message = f"""✅ **Erinnerung von {author_name} erfolgreich gespeichert!**
 
-                📝 **Original-Transkript:**
-                _{transcript}_
+📝 **Original-Transkript:**
+_{transcript}_
 
-                ✨ **Aufbereitete Version:**
-                {enhanced_text}
+✨ **Aufbereitete Version:**
+{enhanced_text}
 
-                📅 **Gespeichert am:** {now_berlin.strftime("%d.%m.%Y um %H:%M Uhr")}"""
+📅 **Gespeichert am:** {now_berlin.strftime("%d.%m.%Y um %H:%M Uhr")}"""
+                
                 await processing_msg.edit_text(response_message, parse_mode='Markdown')
             else:
-                await processing_msg.edit_text("⚠️ Speichern fehlgeschlagen. Transkription war: " + transcript)
+                # Die Fehlermeldung bleibt informativ
+                response_message = f"""⚠️ **Transkription erfolgreich, aber Speichern fehlgeschlagen**
+
+📝 **Original-Transkript:**
+_{transcript}_
+
+✨ **Aufbereitete Version:**
+{enhanced_text}
+
+❌ **Hinweis:** Die Erinnerung konnte nicht in der Google-Tabelle gespeichert werden. Prüfe die Logs in Render."""
+                await processing_msg.edit_text(response_message, parse_mode='Markdown')
+
         except Exception as e:
             logger.error(f"Fehler in handle_voice_message: {e}", exc_info=True)
             await update.message.reply_text("❌ Ein unerwarteter Fehler ist aufgetreten.")
-
     async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📝 Ich verstehe nur Sprachnachrichten! 🎤")
 
