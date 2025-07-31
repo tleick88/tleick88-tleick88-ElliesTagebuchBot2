@@ -1,6 +1,5 @@
-# main.py - Finale, korrigierte Version
+# main.py - Finale, stabile und synchrone Version
 
-import asyncio
 import os
 import logging
 import threading
@@ -26,25 +25,6 @@ def run_flask():
     app.run(host='0.0.0.0', port=port)
 # --- Ende des Webserver-Teils ---
 
-async def main():
-    """Initialisiert alle Dienste und startet den Bot."""
-    
-    # 1. Bot-Instanz erstellen
-    bot = TochterErinnerungenBot()
-    
-    # 2. Google Sheets Manager explizit initialisieren
-    #    Wir greifen auf die Instanz zu, die im Bot erstellt wurde.
-    logger.info("Initialisiere Google Sheets Manager...")
-    is_sheets_ok = await bot.sheets_manager.initialize()
-    
-    if not is_sheets_ok:
-        logger.critical("KRITISCHER FEHLER: Google Sheets konnte nicht initialisiert werden. Der Bot startet, aber das Speichern wird fehlschlagen.")
-        # Man könnte hier auch mit `return` abbrechen, aber wir lassen den Bot trotzdem laufen.
-    
-    # 3. Den Bot starten (jetzt, da alles andere bereit ist)
-    await bot.run()
-
-
 if __name__ == '__main__':
     try:
         # Starte den Flask-Webserver in einem Hintergrund-Thread
@@ -52,8 +32,14 @@ if __name__ == '__main__':
         flask_thread.start()
         logger.info("Flask-Server für Render Health-Check gestartet.")
 
-        # Starte die asynchrone Hauptfunktion, die alles initialisiert und den Bot startet
-        asyncio.run(main())
+        # 1. Bot-Instanz erstellen (dies initialisiert auch Gemini synchron)
+        bot = TochterErinnerungenBot()
         
+        # 2. Den Bot starten. Die run()-Methode ist jetzt blockierend und
+        #    kümmert sich intern um ALLE asynchronen Aufgaben, inkl. Initialisierung.
+        logger.info("Übergebe die Kontrolle an den Bot...")
+        bot.run()
+
     except Exception as e:
         logger.critical(f"Bot konnte nicht gestartet werden: {e}", exc_info=True)
+
