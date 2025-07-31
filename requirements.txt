@@ -59,3 +59,4 @@ google-auth-oauthlib
 pytz
 Flask
 google-cloud-aiplatform
+groq
