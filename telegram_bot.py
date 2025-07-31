@@ -138,10 +138,18 @@ class TochterErinnerungenBot:
             logger.warning("Text-Verbesserung übersprungen, da Groq-Client nicht initialisiert.")
             return text
         try:
-            prompt = f"""Du bist ein liebevoller Assistent, der hilft, Erinnerungen eines Elternteils an seine Tochter festzuhalten. Wandle das folgende Diktat in einen flüssigen, herzerwärmenden Tagebucheintrag um. Korrigiere Fehler, aber bewahre den Sinn. Gib NUR den fertigen Text zurück. Original-Transkript: "{text}" """
+            prompt = f"""**Anweisung:**
+            Du bist ein Assistent, der einen deutschen Tagebucheintrag formuliert.
+            Befolge diese Regeln strikt:
+            1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
+            2.  **INHALT:** Wandle das folgende "Original-Transkript" in einen kurzen, liebevollen Tagebucheintrag um. Korrigiere Grammatikfehler, aber erfinde keine neuen Details hinzu. Bleibe sehr nah am Original.
+            3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, KEINE Kommentare, KEINE Anführungszeichen am Anfang oder Ende.
+
+            **Original-Transkript:**"{text}" """
             chat_completion = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
                 model="llama3-8b-8192",
+                temperature=0.3
             )
             enhanced_text = chat_completion.choices[0].message.content.strip()
             logger.info("✅ Text erfolgreich mit Groq/Llama3 verbessert.")
