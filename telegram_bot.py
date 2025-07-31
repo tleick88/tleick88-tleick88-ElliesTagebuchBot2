@@ -63,8 +63,8 @@ class TochterErinnerungenBot:
             if not project_id:
                 logger.warning("GOOGLE_PROJECT_ID nicht gefunden. Text-Verfeinerung wird deaktiviert.")
             else:
-                vertexai.init(project=project_id, location="europe-west1") 
-                self.gemini_model = GenerativeModel("gemini-1.0-pro")
+                vertexai.init(project=project_id, location="us-central1")  
+                self.gemini_model = GenerativeModel("gemini-1.5-flash-001")
                 logger.info("✅ Vertex AI (Gemini) erfolgreich initialisiert.")
         except Exception as e:
             logger.error(f"FEHLER bei der Initialisierung von Vertex AI: {e}. Text-Verfeinerung ist deaktiviert.")
