@@ -67,15 +67,15 @@ class GoogleSheetsManager:
             self.worksheet = self.spreadsheet.add_worksheet(title="Erinnerungen", rows="1000", cols="5")
         
         headers = self.worksheet.row_values(1)
-        expected_headers = ["Datum", "Original Text", "Aufbereiteter Text", "Monat", "Jahr"]
+        expected_headers = ["Datum", "Autor", "Original Text", "Aufbereiteter Text", "Monat", "Jahr"]
         if headers != expected_headers:
             logger.info("Header-Zeile fehlt oder ist inkorrekt. Erstelle sie neu.")
             # Leere die erste Zeile, bevor neue Header eingefügt werden, um Duplikate zu vermeiden
             self.worksheet.delete_rows(1)
             self.worksheet.insert_row(expected_headers, 1)
 
-    async def save_memory(self, original_text: str, enhanced_text: str) -> bool:
-        """Speichert eine Erinnerung in Google Sheets."""
+    async def save_memory(self, original_text: str, enhanced_text: str, author: str) -> bool:
+        """Speichert eine Erinnerung inklusive des Autors in Google Sheets."""
         if not self.worksheet:
             logger.error("FEHLER: Speichern fehlgeschlagen, da kein aktives Worksheet vorhanden ist.")
             return False
@@ -86,10 +86,11 @@ class GoogleSheetsManager:
             month = now.strftime("%Y-%m")
             year = str(now.year)
             
-            row_data = [timestamp, original_text, enhanced_text, month, year]
+            # Die neue Zeile enthält jetzt auch den Autorennamen
+            row_data = [timestamp, author, original_text, enhanced_text, month, year]
             
             self.worksheet.append_row(row_data)
-            logger.info(f"✅ Erinnerung erfolgreich in Google Sheets gespeichert.")
+            logger.info(f"✅ Erinnerung von '{author}' erfolgreich in Google Sheets gespeichert.")
             return True
         except Exception as e:
             logger.error(f"FEHLER beim Speichern der Zeile in Google Sheets: {e}", exc_info=True)
