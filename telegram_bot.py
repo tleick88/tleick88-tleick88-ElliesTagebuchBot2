@@ -126,6 +126,7 @@ Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bo
     async def handle_voice_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Verarbeitet eingehende Sprachnachrichten."""
         try:
+            author_name = user.first_name 
             processing_msg = await update.message.reply_text("🎤 Verarbeite deine Sprachnachricht...")
             voice = update.message.voice
             logger.info(f"Sprachnachricht erhalten: {voice.duration}s, {voice.file_size} bytes")
@@ -150,7 +151,7 @@ Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bo
             now_berlin = datetime.now(berlin_tz)
 
             await processing_msg.edit_text("💾 Speichere Erinnerung...")
-            success = await self.sheets_manager.save_memory(transcript, enhanced_text)            
+            success = await self.sheets_manager.save_memory(transcript, enhanced_text, author_name)          
             
             if success:
                 response_message = f"""✅ **Erinnerung erfolgreich gespeichert!**
