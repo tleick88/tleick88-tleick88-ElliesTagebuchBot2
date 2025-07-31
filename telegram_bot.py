@@ -1,4 +1,4 @@
-# telegram_bot.py - Angepasst für Google Gemini
+# telegram_bot.py - Finale, stabile Version mit post_init-Hook
 
 """
 Telegram Bot für Tochter-Erinnerungen
@@ -18,7 +18,6 @@ from dotenv import load_dotenv
 import azure.cognitiveservices.speech as speechsdk
 from pydub import AudioSegment
 
-# +++ NEUE IMPORTS FÜR GEMINI +++
 import vertexai
 from vertexai.generative_models import GenerativeModel
 
@@ -37,48 +36,63 @@ logger = logging.getLogger(__name__)
 
 class TochterErinnerungenBot:
     def __init__(self):
+        """Initialisiert den Bot und seine Komponenten synchron."""
         self.token = os.getenv('TELEGRAM_BOT_TOKEN')
         if not self.token:
             raise ValueError("TELEGRAM_BOT_TOKEN nicht gefunden! Bitte als Umgebungsvariable setzen.")
             
-        self.sheets_id = os.getenv('GOOGLE_SHEETS_ID')
-        
         self.azure_speech_key = os.getenv("AZURE_SPEECH_KEY")
         self.azure_speech_region = os.getenv("AZURE_SPEECH_REGION")
         
+        # Komponenten erstellen, aber noch nicht asynchron initialisieren
         self.sheets_manager = GoogleSheetsManager()
-        
         self.summary_generator = SummaryGenerator()
         
+        # Application-Objekt erstellen
         self.application = Application.builder().token(self.token).build()
         
-        # +++ NEUER TEIL: GEMINI INITIALISIERUNG +++
-        self.gemini_model = None # Standardmäßig deaktiviert
+        # +++ DER ENTSCHEIDENDE TRICK: POST-INIT-HOOK +++
+        # Wir weisen unsere eigene asynchrone Initialisierungsfunktion zu.
+        # `run_polling` wird diese Funktion automatisch nach dem Start der Event-Loop ausführen.
+        self.application.post_init = self.post_init_async
+        
+        # Gemini-Modell synchron initialisieren
+        self.gemini_model = None
         try:
             project_id = os.getenv('GOOGLE_PROJECT_ID')
             if not project_id:
                 logger.warning("GOOGLE_PROJECT_ID nicht gefunden. Text-Verfeinerung wird deaktiviert.")
             else:
-                # Initialisiert die Verbindung zu Vertex AI. Nutzt die vorhandenen Service-Account-Credentials.
                 vertexai.init(project=project_id, location="europe-west1") 
-                self.gemini_model = GenerativeModel("gemini-1.0-pro") # Lädt das Gemini-Modell
+                self.gemini_model = GenerativeModel("gemini-1.0-pro")
                 logger.info("✅ Vertex AI (Gemini) erfolgreich initialisiert.")
         except Exception as e:
             logger.error(f"FEHLER bei der Initialisierung von Vertex AI: {e}. Text-Verfeinerung ist deaktiviert.")
             self.gemini_model = None
-        # +++ ENDE DES NEUEN TEILS +++
         
+        # Handler registrieren
         self._register_handlers()
     
+    async def post_init_async(self, application: Application):
+        """
+        Diese asynchrone Funktion wird automatisch von `run_polling` aufgerufen,
+        nachdem die Event-Loop gestartet wurde. Perfekter Ort für asynchrone Setups.
+        """
+        logger.info("Führe Post-Initialisierungs-Aufgaben aus...")
+        is_sheets_ok = await self.sheets_manager.initialize()
+        if not is_sheets_ok:
+            logger.critical("KRITISCHER FEHLER: Google Sheets konnte nicht initialisiert werden. Speichern wird fehlschlagen.")
+        else:
+            logger.info("✅ Post-Initialisierung (Google Sheets) erfolgreich abgeschlossen.")
+
     def _register_handlers(self):
-        """Registriert alle Bot-Handler"""
+        """Registriert alle Bot-Handler."""
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("help", self.help_command))
         self.application.add_handler(MessageHandler(filters.VOICE, self.handle_voice_message))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        # ... (Diese Methode bleibt unverändert)
         welcome_message = """
 🎉 Willkommen beim Tochter-Erinnerungen Bot! 🎉
 
@@ -94,7 +108,6 @@ Sende einfach eine Sprachnachricht, um zu beginnen! 🎤
         await update.message.reply_text(welcome_message)
     
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        # ... (Diese Methode bleibt unverändert)
         help_message = """
 📖 **Hilfe - Tochter-Erinnerungen Bot**
 
@@ -111,14 +124,11 @@ Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bo
         await update.message.reply_text(help_message)
     
     async def handle_voice_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Verarbeitet eingehende Sprachnachrichten"""
-        # Wir rufen hier nicht mehr _initialize_sheets auf, das passiert jetzt im sheets_manager
+        """Verarbeitet eingehende Sprachnachrichten."""
         try:
             processing_msg = await update.message.reply_text("🎤 Verarbeite deine Sprachnachricht...")
             voice = update.message.voice
             logger.info(f"Sprachnachricht erhalten: {voice.duration}s, {voice.file_size} bytes")
-            
-            # ... (Der Rest der Methode bis zum Aufruf von _save_to_sheets bleibt unverändert)
             
             await processing_msg.edit_text("📥 Lade Sprachnachricht herunter...")
             voice_file = await voice.get_file()
@@ -140,7 +150,6 @@ Sende einfach eine Sprachnachricht mit einer Erinnerung an deine Tochter. Der Bo
             now_berlin = datetime.now(berlin_tz)
 
             await processing_msg.edit_text("💾 Speichere Erinnerung...")
-            # Der sheets_manager wird jetzt beim Start initialisiert
             success = await self.sheets_manager.save_memory(transcript, enhanced_text)            
             
             if success:
@@ -171,11 +180,9 @@ _{transcript}_
             await update.message.reply_text("❌ Ein unerwarteter Fehler ist aufgetreten.")
     
     async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        # ... (Diese Methode bleibt unverändert)
         await update.message.reply_text("📝 Ich verstehe nur Sprachnachrichten! 🎤")
     
     async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
-        # ... (Diese Methode bleibt unverändert)
         try:
             speech_config = speechsdk.SpeechConfig(subscription=self.azure_speech_key, region=self.azure_speech_region)
             speech_config.speech_recognition_language="de-DE"
@@ -204,7 +211,6 @@ _{transcript}_
             logger.error(f"Fehler bei Azure Transkription: {e}", exc_info=True)
             return None
     
-    # +++ ERSETZTE METHODE FÜR GEMINI +++
     async def _enhance_text(self, text: str) -> str:
         """Verbessert den transkribierten Text stilistisch mit Google Gemini."""
         if not self.gemini_model:
@@ -222,9 +228,6 @@ _{transcript}_
             Original-Transkript:
             "{text}"
             """
-            
-            # Die `generate_content` Methode ist asynchron in neueren Versionen, aber wir rufen sie hier synchron auf.
-            # Für eine vollständig asynchrone Anwendung könnte man `generate_content_async` verwenden.
             response = self.gemini_model.generate_content(prompt)
             enhanced_text = response.text.strip()
             
@@ -233,19 +236,14 @@ _{transcript}_
 
         except Exception as e:
             logger.error(f"FEHLER bei der Text-Verbesserung mit Gemini: {e}", exc_info=True)
-            return text # Im Fehlerfall geben wir den Originaltext zurück
+            return text
 
-    async def _save_to_sheets(self, original_text: str, enhanced_text: str) -> bool:
-        """Speichert die Erinnerung in Google Sheets. Die Initialisierung erfolgt jetzt im Manager selbst."""
-        try:
-            # Die Initialisierung wird jetzt intern im Manager gehandhabt, falls nötig.
-            return await self.sheets_manager.save_memory(original_text, enhanced_text)
-        except Exception as e:
-            logger.error(f"Fehler beim Aufruf von save_memory: {e}", exc_info=True)
-            return False
+    def run(self):
+        """
+        Startet den Bot. Diese Methode ist synchron und blockierend.
+        Sie übergibt die Kontrolle an `run_polling`.
+        """
+        logger.info("Starte run_polling (dies blockiert und startet die async Welt)...")
+        # run_polling kümmert sich um alles: Start der Loop, Ausführung von post_init und Polling.
+        self.application.run_polling()
 
-    async def run(self):
-        """Startet den Bot im Polling-Modus. Diese Methode ist jetzt asynchron."""
-        logger.info("Bot wird im Polling-Modus gestartet...")
-        # run_polling ist eine asynchrone, blockierende Operation
-        await self.application.run_polling()
