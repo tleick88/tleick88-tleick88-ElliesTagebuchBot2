@@ -10,7 +10,6 @@ from io import BytesIO
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
-import azure.cognitiveservices.speech as speechsdk
 from pydub import AudioSegment
 from groq import Groq
 
