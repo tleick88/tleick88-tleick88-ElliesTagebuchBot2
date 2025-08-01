@@ -28,8 +28,6 @@ class TochterErinnerungenBot:
         if not self.token:
             raise ValueError("TELEGRAM_BOT_TOKEN nicht gefunden!")
 
-        self.azure_speech_key = os.getenv("AZURE_SPEECH_KEY")
-        self.azure_speech_region = os.getenv("AZURE_SPEECH_REGION")
         
         self.sheets_manager = GoogleSheetsManager()
         self.summary_generator = SummaryGenerator()
