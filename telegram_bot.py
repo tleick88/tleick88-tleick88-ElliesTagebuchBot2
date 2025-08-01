@@ -133,26 +133,34 @@ _{transcript}_
     async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📝 Ich verstehe nur Sprachnachrichten! 🎤")
 
-    async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
+     async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
+        """
+        Transkribiert eine Audiodatei mit Groq unter Verwendung des Whisper-Modells.
+        """
+        if not self.groq_client:
+            logger.warning("Transkription übersprungen, da der Groq-Client nicht initialisiert wurde.")
+            return None
+
         try:
-            speech_config = speechsdk.SpeechConfig(subscription=self.azure_speech_key, region=self.azure_speech_region)
-            speech_config.speech_recognition_language="de-DE"
-            import tempfile
-            with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp_ogg_file:
-                tmp_ogg_file.write(audio_data.getvalue())
-                tmp_ogg_path = tmp_ogg_file.name
-            audio = AudioSegment.from_ogg(tmp_ogg_path)
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav_file:
-                audio.export(tmp_wav_file.name, format="wav")
-                tmp_wav_path = tmp_wav_file.name
-            audio_config = speechsdk.AudioConfig(filename=tmp_wav_path)
-            speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_config)
-            result = speech_recognizer.recognize_once_async().get()
-            os.remove(tmp_ogg_path)
-            os.remove(tmp_wav_path)
-            return result.text.strip() if result.reason == speechsdk.ResultReason.RecognizedSpeech else None
+            logger.info("Sende Audiodatei zur Transkription an Groq (Whisper)...")
+            
+            # Wichtig: Wir müssen sicherstellen, dass die BytesIO-Daten einen Dateinamen haben,
+            # damit die Groq-API den Dateityp erkennen kann.
+            audio_data.name = "voice_message.ogg"
+
+            # Die Groq-API erwartet ein Tupel: (Dateiname, Audiodaten)
+            transcription = self.groq_client.audio.transcriptions.create(
+                file=(audio_data.name, audio_data.read()),
+                model="whisper-large-v3",
+                response_format="json", # Stellt sicher, dass wir eine saubere Antwort bekommen
+                language="de" # Wichtig: Wir geben die Sprache an, um die Genauigkeit zu maximieren
+            )
+
+            logger.info("✅ Transkription von Groq erfolgreich erhalten.")
+            return transcription.text.strip()
+
         except Exception as e:
-            logger.error(f"Fehler bei Azure Transkription: {e}", exc_info=True)
+            logger.error(f"Fehler bei der Transkription mjt Groq: {e}", exc_info=True)
             return None
 
     async def _enhance_text(self, text: str) -> str:
