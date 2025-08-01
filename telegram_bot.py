@@ -131,7 +131,7 @@ _{transcript}_
     async def handle_text_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📝 Ich verstehe nur Sprachnachrichten! 🎤")
 
-     async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
+    async def _transcribe_audio(self, audio_data: BytesIO) -> Optional[str]:
         """
         Transkribiert eine Audiodatei mit Groq unter Verwendung des Whisper-Modells.
         """
