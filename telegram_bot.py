@@ -169,14 +169,14 @@ _{transcript}_
             Du bist ein Assistent, der einen deutschen Tagebucheintrag formuliert.
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
-            2.  **INHALT:** Wandle das folgende "Original-Transkript" in einen kurzen, liebevollen Tagebucheintrag ohne aus zu schweifen. Korrigiere Grammatikfehler, aber erfinde keine Details hinzu. Bleibe extrem nah am Original.
+            2.  **INHALT:** Wandle das folgende "Original-Transkript" in einen kurzen, liebevollen Tagebucheintrag ohne aus zu schweifen. Korrigiere Grammatikfehler und Zeitliche abfolge aber erfinde keine Details hinzu. Füge keine Einschätzung hinzu! Bleibe extrem nah am Original.
             3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, KEINE Kommentare, KEINE Anführungszeichen am Anfang oder Ende. Schweife nicht aus!
 
             **Original-Transkript:**"{text}" """
             chat_completion = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
-                model="llama3-8b-8192",
-                temperature=0.01
+                model="llama-3.1-8b-instant",
+                temperature=0.2
             )
             enhanced_text = chat_completion.choices[0].message.content.strip()
             logger.info("✅ Text erfolgreich mit Groq/Llama3 verbessert.")
