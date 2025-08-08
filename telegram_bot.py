@@ -169,7 +169,15 @@ _{transcript}_
             Du bist ein Assistent, der einen deutschen Tagebucheintrag formuliert.
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
-            2.  **INHALT:** Wandle das folgende "Original-Transkript" in einen kurzen, liebevollen Tagebucheintrag ohne aus zu schweifen. Korrigiere Grammatikfehler und Zeitliche abfolge aber erfinde keine Details hinzu. Füge keine Einschätzung hinzu! Bleibe extrem nah am Original.
+            2.  **INHALT:** Du erhältst einen Rohtext, der wie ein spontanes Gespräch, Transkript oder Mitschnitt wirkt.
+Schreibe daraus einen flüssigen, zusammenhängenden Fließtext in lebendigem Romanstil.
+
+Anforderungen:
+	1.	Behalte den Inhalt und die Kernaussagen vollständig bei.
+	2.	Glätte Formulierungen, entferne unnötige Wiederholungen und fasse abgehackte Sätze sinnvoll zusammen.
+	3.	Strukturiere Dialoge sauber mit korrekten deutschen Anführungszeichen („…“) und füge Sprecherhinweise ein, wo passend.
+	4.	Verwende bildhafte, abwechslungsreiche Sprache und ergänze, wo stimmig, kurze emotionale oder situative Beschreibungen.
+	5.	Halte Erzählperspektive, Rechtschreibung und Grammatik durchgehend korrekt.
             3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, KEINE Kommentare, KEINE Anführungszeichen am Anfang oder Ende. Schweife nicht aus!
 
             **Original-Transkript:**"{text}" """
