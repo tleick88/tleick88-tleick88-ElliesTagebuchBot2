@@ -173,10 +173,10 @@ _{transcript}_
 Schreibe daraus einen flüssigen, zusammenhängenden Fließtext in lebendigem Romanstil.
 
 Anforderungen:
-	1.	Behalte den Inhalt und die Kernaussagen vollständig bei.
-	2.	Glätte Formulierungen, entferne unnötige Wiederholungen und fasse abgehackte Sätze sinnvoll zusammen.
+	1.	Behalte den Inhalt und die Kernaussagen vollständig bei. Erfinde keine Story dazu!
+	2.	Glätte Formulierungen, entferne unnötige Wiederholungen, korrigiere zeitliche abfilgen und fasse abgehackte Sätze sinnvoll zusammen.
 	3.	Strukturiere Dialoge sauber mit korrekten deutschen Anführungszeichen („…“) und füge Sprecherhinweise ein, wo passend.
-	4.	Verwende bildhafte, abwechslungsreiche Sprache und ergänze, wo stimmig, kurze emotionale oder situative Beschreibungen.
+	4.	Schreibe im Lebendigen Roman-Stil.
 	5.	Halte Erzählperspektive, Rechtschreibung und Grammatik durchgehend korrekt.
             3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, KEINE Kommentare, KEINE Anführungszeichen am Anfang oder Ende. Schweife nicht aus!
 
@@ -184,7 +184,7 @@ Anforderungen:
             chat_completion = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
                 model="llama-3.1-8b-instant",
-                temperature=0.2
+                temperature=0.3
             )
             enhanced_text = chat_completion.choices[0].message.content.strip()
             logger.info("✅ Text erfolgreich mit Groq/Llama3 verbessert.")
