@@ -165,8 +165,8 @@ _{transcript}_
             logger.warning("Text-Verbesserung übersprungen, da Groq-Client nicht initialisiert.")
             return text
         try:
-            prompt = f"""**Anweisung:**
-            Du bist ein Assistent, der einen deutschen Tagebucheintrag als liebevollen Text an seine Tochter formuliert.
+            prompt = f"""**Aufgabe:**
+            Formuliere das folgende Original-Transkript in einen flüssigen Tagebucheintrag um.
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
             2.  **INHALT:** Du erhältst einen Rohtext, der wie ein spontanes Gespräch, Transkript oder Mitschnitt wirkt.
@@ -179,7 +179,7 @@ Anforderungen:
 	4.	Strukturiere Dialoge sauber mit korrekten deutschen Anführungszeichen („…“) und füge Sprecherhinweise ein, wo passend.
 	5.	Schreibe im Lebendigen Roman-Stil aber aus der Perspektive des Autors der direkt an den Empfänger spricht (Du-Form)
 	6.	Halte Erzählperspektive, Rechtschreibung und Grammatik durchgehend korrekt.
-            3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, KEINE Kommentare, KEINE Anführungszeichen am Anfang oder Ende. Schweife nicht aus!
+            3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, Keine Grusformel, KEINE Kommentare, Schweife nicht aus!
 
             **Original-Transkript:**"{text}" """
             chat_completion = self.groq_client.chat.completions.create(
