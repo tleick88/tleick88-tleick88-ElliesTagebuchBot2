@@ -180,7 +180,7 @@ Anforderungen:
 	4.	Strukturiere Dialoge sauber mit korrekten deutschen Anführungszeichen („…“) und füge Sprecherhinweise ein, wo passend.
 	5.	Schreibe aus der Perspektive des Autors der direkt an den Empfänger spricht (Du-Form)
 	6.	Halte Erzählperspektive, Rechtschreibung und Grammatik durchgehend korrekt.
-            3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, Keine Grusformel, KEINE Kommentare, Schweife nicht aus!
+            3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. Verwende keine Anführungszeichen am Anfang oder Ende des gesamten Textes. KEINE Einleitungen, Keine Grusformel, KEINE Kommentare, Schweife nicht aus!
 
             **Original-Transkript:**"{text}" """
             chat_completion = self.groq_client.chat.completions.create(
