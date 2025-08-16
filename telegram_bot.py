@@ -170,7 +170,7 @@ _{transcript}_
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
             2.  **INHALT:** Du erhältst einen Rohtext, der wie ein spontanes Gespräch, Transkript oder Mitschnitt wirkt.
-Schreibe daraus einen flüssigen Fließtext in lebendigem Romanstil.
+Schreibe daraus einen flüssigen Fließtext in in einem flüssigen, erzählerischen Stil.
 
 Anforderungen:
 	1.	Behalte den Inhalt und die Kernaussagen vollständig bei. Erfinde keine Story dazu!
