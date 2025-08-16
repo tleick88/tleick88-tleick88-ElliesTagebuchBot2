@@ -167,6 +167,7 @@ _{transcript}_
         try:
             prompt = f"""**Aufgabe:**
             Du bist ein Assistant der einen diktierten Tagebucheintrag an Ellie (die Tochter) stilistisch überarbeitet. Deine Aufgabe ist es, den Text flüssiger und angenehmer lesbar zu machen ohne den Inhalt oder die Kernaussage zu verändern.
+            Der Grundton des Textes soll immer optimistisch und liebevoll sein.
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
             2.  **INHALT:** Du erhältst einen Rohtext, der wie ein spontanes Gespräch, Transkript oder Mitschnitt wirkt.
