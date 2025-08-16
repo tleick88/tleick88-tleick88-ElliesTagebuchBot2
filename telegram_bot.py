@@ -186,7 +186,7 @@ Anforderungen:
             chat_completion = self.groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
                 model="llama-3.1-8b-instant",
-                temperature=0.5
+                temperature=0.3
             )
             enhanced_text = chat_completion.choices[0].message.content.strip()
             logger.info("✅ Text erfolgreich mit Groq/Llama3 verbessert.")
