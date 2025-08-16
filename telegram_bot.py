@@ -166,18 +166,18 @@ _{transcript}_
             return text
         try:
             prompt = f"""**Aufgabe:**
-            Formuliere das folgende Original-Transkript in einen flüssigen Tagebucheintrag um.
+            Du bist ein Assistant der einen diktierten Tagebucheintrag an Ellie (die Tochter) stilistisch überarbeitet. Deine Aufgabe ist es, den Text flüssiger und angenehmer lesbar zu machen ohne den Inhalt oder die Kernaussage zu verändern.
             Befolge diese Regeln strikt:
             1.  **SPRACHE:** Deine Antwort MUSS ausschließlich auf Deutsch sein. Antworte unter keinen Umständen auf Englisch.
             2.  **INHALT:** Du erhältst einen Rohtext, der wie ein spontanes Gespräch, Transkript oder Mitschnitt wirkt.
-Schreibe daraus einen flüssigen, zusammenhängenden Fließtext in lebendigem Romanstil.
+Schreibe daraus einen flüssigen Fließtext in lebendigem Romanstil.
 
 Anforderungen:
 	1.	Behalte den Inhalt und die Kernaussagen vollständig bei. Erfinde keine Story dazu!
-	2.	Halte dich exakt an dkie Zeitabfolge des Originals. Erfinde keine Zeitsprünge dazu. 
-    3.  Glätte Formulierungen, entferne unnötige Wiederholungen, korrigiere zeitliche abfilgen und fasse abgehackte Sätze sinnvoll zusammen.
+    2.  Halte dich exakt an dkie Zeitabfolge des Originals. Erfinde keine Zeitsprünge dazu.
+    3.  Glätte Formulierungen, entferne unnötige Wiederholungen, korrigiere zeitliche Abfolgen und fasse abgehackte Sätze sinnvoll zusammen.
 	4.	Strukturiere Dialoge sauber mit korrekten deutschen Anführungszeichen („…“) und füge Sprecherhinweise ein, wo passend.
-	5.	Schreibe im Lebendigen Roman-Stil aber aus der Perspektive des Autors der direkt an den Empfänger spricht (Du-Form)
+	5.	Schreibe aus der Perspektive des Autors der direkt an den Empfänger spricht (Du-Form)
 	6.	Halte Erzählperspektive, Rechtschreibung und Grammatik durchgehend korrekt.
             3.  **FORMAT:** Gib NUR den reinen, verbesserten Text des Tagebucheintrags zurück. KEINE Einleitungen, Keine Grusformel, KEINE Kommentare, Schweife nicht aus!
 
